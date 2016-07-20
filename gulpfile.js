@@ -101,8 +101,22 @@ let nav = navigation(navConfig, navSettings)
 
 gulp.task('serve', ['build', 'build-docs', 'styles'], () => {
   browserSync.init({
-    server: paths.build,
-    open: false
+    open: false,
+    server: {
+      baseDir: paths.build,
+      middleware: [
+        modRewrite([
+          '^/docs/latest/(.*) /docs/' + docsVersions.slice(-1).pop() + '/$1'
+        ]),
+        function (req, res, next) {
+          var file = `./build${req.originalUrl}.html`
+          require('fs').exists(file, function (exists) {
+            if (exists) req.url += '.html'
+            next()
+          })
+        }
+      ]
+    }
   })
 
   gulp.watch('./src/**/*.*', ['build', 'styles'])
@@ -112,6 +126,10 @@ gulp.task('build-docs', () => {
   const version = '1.7' // TODO: build for each version
 
   return gulp.src(`./dcos-docs/${version}/**/*.md`)
+    .pipe($.frontMatter().on('data', file => {
+      Object.assign(file, file.frontMatter)
+      delete file.frontMatter
+    }))
     .pipe(gulpsmith()
       .use(addTimestampToMarkdownFiles)
       .use(markdown({
@@ -141,6 +159,10 @@ gulp.task('build-blog', () => {
 
 gulp.task('build', () => {
   return gulp.src(['src/**/*', '!' + paths.styles.src])
+    .pipe($.frontMatter().on('data', file => {
+      Object.assign(file, file.frontMatter)
+      delete file.frontMatter
+    }))
     .pipe(gulpsmith()
       .use(addTimestampToMarkdownFiles)
       .use(markdown({
@@ -152,14 +174,14 @@ gulp.task('build', () => {
         locals: { cssTimestamp },
         pretty: true
       }))
-      // .use(permalinks({
-      //   pattern: ':title',
-      //   date: 'YYYY',
-      //   linksets: [{
-      //     match: { collection: 'posts' },
-      //     pattern: 'blog/:date/:title'
-      //   }]
-      // }))
+      .use(permalinks({
+        pattern: ':title',
+        date: 'YYYY',
+        linksets: [{
+          match: { collection: 'posts' },
+          pattern: 'blog/:date/:title'
+        }]
+      }))
       .use(collections({
         posts: {
           pattern: '*.md',
