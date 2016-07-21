@@ -53,9 +53,11 @@ block content
     .container__content
       h2 No Upcoming Events
 
+      pre #{locals.events}
+
 
   .container.events-container
-    .container__content.hide
+    .container__content
       .events-carousel
         .events-carousel-btn.events-carousel-btn--next
           img(src='/assets/images/icons/chevron-dark-right.svg')
@@ -64,15 +66,16 @@ block content
           img(src='/assets/images/icons/chevron-dark-left.svg')
 
         .card-container
-          a(href='http://www.linkernetworks.com/#/mayevent' target='_blank').card
-            .card-header(style='background-image: url(/assets/images/events/beijing.png)')
-              .card-content
-                .card-header__date
-                  p 20
-                  p MAY
-            .card-content.card-copy
-              h3.card-title  DC/OS Meetup with Linker Networks, Beijing, China
-              .cta.cta--text More info &rarr;
+          each event in locals.events
+            a(href!=event.url target='_blank').card
+              .card-header(style='background-image: url(#{event.image})')
+                .card-content
+                  .card-header__date
+                    p #{event.day}
+                    p #{event.month.toUpperCase()}
+              .card-content.card-copy
+                h3.card-title  #{event.title}
+                .cta.cta--text More info &rarr;
 
     .container__content.event-cta
       a(href="mailto:events@dcos.io").cta.cta--text Want to host your own DC/OS event? &rarr;
