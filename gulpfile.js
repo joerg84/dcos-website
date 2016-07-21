@@ -42,6 +42,13 @@ const paths = {
   styles: {
     src: ['./src/styles/**/*.scss'],
     dest: './build/styles'
+  },
+  js: {
+    src: './src/scripts/**/*.js',
+    dest: './build/scripts'
+  },
+  assets: {
+    dest: './build/assets'
   }
 }
 
@@ -99,7 +106,7 @@ let nav = navigation(navConfig, navSettings)
 // Gulp tasks
 //
 
-gulp.task('serve', ['build', 'build-docs', 'styles'], () => {
+gulp.task('serve', ['build', 'build-docs', 'build-blog', 'copy', 'javascript', 'styles'], () => {
   browserSync.init({
     open: false,
     server: {
@@ -122,10 +129,11 @@ gulp.task('serve', ['build', 'build-docs', 'styles'], () => {
   gulp.watch('./src/**/*.*', ['build', 'styles'])
 })
 
+// TODO: fix images for docs
 gulp.task('build-docs', () => {
   const version = '1.7' // TODO: build for each version
 
-  return gulp.src(`./dcos-docs/${version}/**/*.md`)
+  return gulp.src(`./dcos-docs/${version}/**/*.*`)
     .pipe($.frontMatter().on('data', file => {
       Object.assign(file, file.frontMatter)
       delete file.frontMatter
@@ -154,11 +162,7 @@ gulp.task('build-docs', () => {
 })
 
 gulp.task('build-blog', () => {
-  // TODO
-})
-
-gulp.task('build', () => {
-  return gulp.src(['src/**/*', '!' + paths.styles.src])
+  return gulp.src(['src/blog/*.md'])
     .pipe($.frontMatter().on('data', file => {
       Object.assign(file, file.frontMatter)
       delete file.frontMatter
@@ -224,25 +228,57 @@ gulp.task('build', () => {
         moment,
         rootUrl: CONFIG.root_url
       }))
-      .use(babel({
-        presets: ['es2015'],
-        only: './src/scripts/**'
-      }))
-      .use(copy({
-        pattern: 'assets/*',
-        directory: 'assets'
-      }))
-      .use(each(updatePaths))
-      .use(uglify({
-        filter: 'scripts/**/*.js',
-        concat: 'scripts/main.min.js'
-      }))
       .use(layouts({
         pattern: '**/*.html',
         engine: 'jade',
         directory: path.join('layouts')
       })))
     .pipe(gulp.dest(paths.build))
+})
+
+gulp.task('build', () => {
+  return gulp.src(['src/**/*.jade', 'src/*.md', '!src/blog/*.md'])
+    .pipe($.frontMatter().on('data', file => {
+      Object.assign(file, file.frontMatter)
+      delete file.frontMatter
+    }))
+    .pipe(gulpsmith()
+      .use(addTimestampToMarkdownFiles)
+      .use(markdown({
+        smartypants: true,
+        gfm: true,
+        tables: true
+      }))
+      .use(jade({
+        locals: { cssTimestamp },
+        pretty: true
+      }))
+      .use(define({
+        moment,
+        rootUrl: CONFIG.root_url
+      }))
+      .use(each(updatePaths))
+      .use(layouts({
+        pattern: '**/*.html',
+        engine: 'jade',
+        directory: path.join('layouts')
+      })))
+    .pipe(gulp.dest(paths.build))
+})
+
+gulp.task('javascript', () => {
+  return gulp.src(paths.js.src)
+    .pipe($.babel({
+      presets: ['es2015'],
+      only: './src/scripts/**'
+    }))
+    .pipe($.concat('main.min.js'))
+    .pipe(gulp.dest(paths.js.dest))
+})
+
+gulp.task('copy', () => {
+  return gulp.src(['./src/assets/**/*.*'])
+    .pipe(gulp.dest(paths.assets.dest))
 })
 
 gulp.task('styles', () => {
