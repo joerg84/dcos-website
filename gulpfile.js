@@ -1,5 +1,6 @@
 'use strict'
 
+const fs = require('fs')
 const Metalsmith = require('metalsmith')
 const jade = require('metalsmith-jade')
 const markdown = require('metalsmith-markdown')
@@ -126,8 +127,7 @@ gulp.task('serve', ['build'], () => {
     }
   })
 
-  gulp.watch(['src/**/*.jade', 'src/*.md'], ['build-site'])
-  // gulp.watch('./dcos-docs/', ['build-docs', 'copy-docs-images']) // TODO: should we watch docs?
+  gulp.watch(['./src/**/*.jade', './src/*.md', './src/events.json'], ['build-site'])
   gulp.watch(paths.blog.src, ['build-blog'])
   gulp.watch(paths.styles.src, ['styles'])
   gulp.watch(paths.js.src, ['js-watch'])
@@ -276,7 +276,7 @@ gulp.task('build-site', () => {
           tables: true
         }))
         .use(jade({
-          locals: { cssTimestamp, events: addDateProps(filterPastEvents(require('./src/events.json'))) },
+          locals: { cssTimestamp, events: addDateProps(filterPastEvents(JSON.parse(fs.readFileSync('./src/events.json', 'utf8')))) },
           pretty: true
         }))
         .use(define({

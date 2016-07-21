@@ -1,7 +1,7 @@
 [
   { "title": "Event title here 1", "image": "/assets/images/events/2016-04-19.jpg", "date": "2016-07-20", "url": "http://dcos.io" },
-  { "title": "Event title here 3", "image": "/assets/images/events/2016-04-19.jpg", "date": "2016-08-23", "url": "http://dcos.io" },
-  { "title": "Event title here 2", "image": "/assets/images/events/2016-04-19.jpg", "date": "2016-08-23", "url": "" },
+  { "title": "Event title here 2", "image": "/assets/images/events/2016-04-19.jpg", "date": "2016-08-23", "url": "http://dcos.io" },
+  { "title": "Event title here 3", "image": "/assets/images/events/2016-04-19.jpg", "date": "2016-08-23", "url": "" },
   { "title": "Event title here 4", "image": "/assets/images/events/2016-04-19.jpg", "date": "2016-08-24", "url": "" },
   { "title": "Event title here 5", "image": "/assets/images/events/2016-04-19.jpg", "date": "2016-08-25", "url": "" },
   { "title": "Event title here 6", "image": "/assets/images/events/2016-04-19.jpg", "date": "2016-08-26", "url": "" },
