@@ -51,10 +51,10 @@ block content
 
   .container.container--grey-background.community-container
     .container__content
-      h2 No Upcoming Events
-
-      pre #{locals.events}
-
+      if locals.events.length === 0
+        h2 No Upcoming Events
+      else
+        h2 Upcoming Events
 
   .container.events-container
     .container__content
