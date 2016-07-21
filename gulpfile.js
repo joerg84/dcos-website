@@ -106,7 +106,7 @@ let nav = navigation(navConfig, navSettings)
 // Gulp tasks
 //
 
-gulp.task('serve', ['build', 'build-docs', 'build-blog', 'copy', 'javascript', 'styles'], () => {
+gulp.task('serve', ['build', 'build-docs', 'build-blog', 'copy-docs-images', 'copy', 'javascript', 'styles'], () => {
   browserSync.init({
     open: false,
     server: {
@@ -129,11 +129,10 @@ gulp.task('serve', ['build', 'build-docs', 'build-blog', 'copy', 'javascript', '
   gulp.watch('./src/**/*.*', ['build', 'styles'])
 })
 
-// TODO: fix images for docs
 gulp.task('build-docs', () => {
   const version = '1.7' // TODO: build for each version
 
-  return gulp.src(`./dcos-docs/${version}/**/*.*`)
+  return gulp.src(`./dcos-docs/${version}/**/*.md`)
     .pipe($.frontMatter().on('data', file => {
       Object.assign(file, file.frontMatter)
       delete file.frontMatter
@@ -158,6 +157,13 @@ gulp.task('build-docs', () => {
         pretty: true
       }))
     )
+    .pipe(gulp.dest(path.join(paths.build, 'docs', version)))
+})
+
+gulp.task('copy-docs-images', () => {
+  const version = '1.7' // TODO: build for each version
+
+  return gulp.src(`./dcos-docs/${version}/**/*.{png, gif, jpg, jpeg}`)
     .pipe(gulp.dest(path.join(paths.build, 'docs', version)))
 })
 
