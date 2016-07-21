@@ -104,7 +104,7 @@ let nav = navigation(navConfig, navSettings)
 // Gulp tasks
 //
 
-gulp.task('build', ['build-site', 'build-docs', 'build-blog', 'copy-docs-images', 'copy', 'javascript', 'styles'])
+gulp.task('build', ['build-site', ...docsVersions.map(getDocsBuildTask), 'build-blog', ...docsVersions.map(getDocsCopyTask), 'copy', 'javascript', 'styles'])
 
 gulp.task('serve', ['build'], () => {
   browserSync.init({
@@ -135,45 +135,53 @@ gulp.task('serve', ['build'], () => {
   gulp.watch(['./layouts', './mixins', './includes'], ['build'])
 })
 
-gulp.task('build-docs', () => {
-  const version = '1.7' // TODO: build for each version
+function getDocsBuildTask (version) {
+  const name = `build-docs-${version}`
 
-  return gulp.src(`./dcos-docs/${version}/**/*.md`)
-    .pipe($.frontMatter().on('data', file => {
-      Object.assign(file, file.frontMatter)
-      delete file.frontMatter
-    }))
-    .pipe(
-      gulpsmith()
-        .use(addTimestampToMarkdownFiles)
-        .use(markdown({
-          smartypants: true,
-          gfm: true,
-          tables: true
-        }))
-        .use(nav)
-        .use(layouts({
-          pattern: '**/*.html',
-          engine: 'jade',
-          directory: path.join('layouts'),
-          default: 'docs.jade'
-        }))
-        .use(each(updatePaths))
-        .use(jade({
-          locals: { cssTimestamp },
-          pretty: true
-        }))
-        .use(reloadInMetalsmithPipeline)
-      )
-    .pipe(gulp.dest(path.join(paths.build, 'docs', version)))
-})
+  gulp.task(name, () => {
+    return gulp.src(`./dcos-docs/${version}/**/*.md`)
+      .pipe($.frontMatter().on('data', file => {
+        Object.assign(file, file.frontMatter)
+        delete file.frontMatter
+      }))
+      .pipe(
+        gulpsmith()
+          .use(addTimestampToMarkdownFiles)
+          .use(markdown({
+            smartypants: true,
+            gfm: true,
+            tables: true
+          }))
+          .use(nav)
+          .use(layouts({
+            pattern: '**/*.html',
+            engine: 'jade',
+            directory: path.join('layouts'),
+            default: 'docs.jade'
+          }))
+          .use(each(updatePaths))
+          .use(jade({
+            locals: { cssTimestamp },
+            pretty: true
+          }))
+          .use(reloadInMetalsmithPipeline)
+        )
+      .pipe(gulp.dest(path.join(paths.build, 'docs', version)))
+  })
 
-gulp.task('copy-docs-images', () => {
-  const version = '1.7' // TODO: build for each version
+  return name
+}
 
-  return gulp.src(`./dcos-docs/${version}/**/*.{png, gif, jpg, jpeg}`)
-    .pipe(gulp.dest(path.join(paths.build, 'docs', version)))
-})
+function getDocsCopyTask (version) {
+  const name = `copy-docs-images-${version}`
+
+  gulp.task(name, () => {
+    return gulp.src(`./dcos-docs/${version}/**/*.{png,gif,jpg,jpeg}`)
+      .pipe(gulp.dest(path.join(paths.build, 'docs', version)))
+  })
+
+  return name
+}
 
 gulp.task('build-blog', () => {
   return gulp.src(paths.blog.src)
