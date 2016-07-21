@@ -2,23 +2,17 @@
 
 const Metalsmith = require('metalsmith')
 const jade = require('metalsmith-jade')
-const sass = require('metalsmith-sass')
 const markdown = require('metalsmith-markdown')
 const layouts = require('metalsmith-layouts')
 const permalinks = require('metalsmith-permalinks')
-const babel = require('metalsmith-babel')
 const bourbon = require('node-bourbon')
 const path = require('path')
-const postcss = require('metalsmith-postcss')
 const autoprefixer = require('autoprefixer')
-const copy = require('metalsmith-copy')
 const each = require('metalsmith-each')
 const navigation = require('metalsmith-navigation')
 const modRewrite = require('connect-modrewrite')
-const uglify = require('metalsmith-uglify')
 const define = require('metalsmith-define')
 const collections = require('metalsmith-collections')
-const logger = require('metalsmith-logger')
 const writemetadata = require('metalsmith-writemetadata')
 const moment = require('moment')
 const tags = require('metalsmith-tags')
@@ -291,7 +285,6 @@ gulp.task('build-site', () => {
     .pipe(gulp.dest(paths.build))
 })
 
-// TODO: uglify in production
 gulp.task('javascript', () => {
   return gulp.src(paths.js.src)
     .pipe($.babel({
@@ -299,6 +292,7 @@ gulp.task('javascript', () => {
       only: './src/scripts/**'
     }))
     .pipe($.concat('main.min.js'))
+    .pipe($.if(isProd(), $.uglify()))
     .pipe(gulp.dest(paths.js.dest))
 })
 
@@ -319,6 +313,7 @@ gulp.task('styles', () => {
       ].concat(bourbon.includePaths)
     }).on('error', $.sass.logError))
     .pipe($.postcss(processors))
+    .pipe($.if(isProd(), $.cleanCss()))
     .pipe(gulp.dest(paths.styles.dest))
     .pipe(browserSync.stream())
 })
@@ -329,6 +324,9 @@ gulp.task('copy', () => {
 })
 
 // Utility functions
+
+const isDev = () => process.env.NODE_ENV === 'development'
+const isProd = () => process.env.NODE_ENV === 'production'
 
 const reloadInMetalsmithPipeline = (a, b, done) => {
   reload()
